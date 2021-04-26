@@ -6,7 +6,7 @@ import logoPin from "../images/logopin.png"
 
 const LocationMap = () => {
   const latLong = [28.508272547985342, -13.85802176745168]
-  return (
+  return typeof window !== "undefined" ? (
     <Box width="100%">
       <MapContainer
         center={latLong}
@@ -32,7 +32,7 @@ const LocationMap = () => {
         />
       </MapContainer>
     </Box>
-  )
+  ) : null
 }
 
 export default LocationMap
