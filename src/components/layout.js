@@ -1,55 +1,94 @@
-/**
- * Layout component that queries for data
- * with Gatsby's useStaticQuery component
- *
- * See: https://www.gatsbyjs.com/docs/use-static-query/
- */
+import React, { useEffect } from "react"
+import { connect } from "react-redux"
+import Header from "./Header"
+import MobileMenu from "./MobileMenu"
+import MobileContact from "./MobileContact"
+import Footer from "./Footer"
+import { setBodyFontLoaded, setAtTop, setIsMobile } from "../state"
+import { useTheme, useMediaQuery } from "@material-ui/core"
+import { AnimatePresence, motion } from "framer-motion"
+import FontFaceObserver from "fontfaceobserver"
+import { font } from "../style"
 
-import * as React from "react"
-import PropTypes from "prop-types"
-import { useStaticQuery, graphql } from "gatsby"
+const Layout = ({ dispatch, children, bodyFontLoaded, headerFontLoaded }) => {
+  const theme = useTheme()
 
-import Header from "./header"
-import "./layout.css"
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
-const Layout = ({ children }) => {
-  const data = useStaticQuery(graphql`
-    query SiteTitleQuery {
-      site {
-        siteMetadata {
-          title
-        }
-      }
+  const loadAssets = () => {
+    const fontFace = new FontFaceObserver(font)
+    const bodyFontLoader = () => {
+      fontFace.load().then(() => {
+        dispatch(setBodyFontLoaded(true))
+      }, bodyFontLoader)
     }
-  `)
+    bodyFontLoader()
+  }
+
+  useEffect(() => {
+    document.addEventListener("scroll", () => {
+      dispatch(setAtTop(window.scrollY === 0))
+    })
+    loadAssets()
+    //eslint-disable-next-line
+  }, [])
+
+  useEffect(() => {
+    dispatch(setIsMobile(isMobile))
+    //eslint-disable-next-line
+  }, [isMobile])
+
+  const duration = 0.25
+
+  const variants = {
+    initial: {
+      opacity: 0,
+    },
+    enter: {
+      opacity: 1,
+      transition: {
+        duration: duration,
+        delay: duration,
+        when: "beforeChildren",
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: { duration: duration },
+    },
+  }
 
   return (
     <>
-      <Header siteTitle={data.site.siteMetadata?.title || `Title`} />
-      <div
-        style={{
-          margin: `0 auto`,
-          maxWidth: 960,
-          padding: `0 1.0875rem 1.45rem`,
-        }}
-      >
-        <main>{children}</main>
-        <footer
-          style={{
-            marginTop: `2rem`,
-          }}
-        >
-          © {new Date().getFullYear()}, Built with
-          {` `}
-          <a href="https://www.gatsbyjs.com">Gatsby</a>
-        </footer>
-      </div>
+      {bodyFontLoaded ? (
+        <>
+          <MobileMenu />
+          <MobileContact />
+          <Header />
+          <AnimatePresence>
+            {typeof window !== `undefined` ? (
+              <motion.main
+                key={window.location.pathname}
+                variants={variants}
+                initial="initial"
+                animate="enter"
+                exit="exit"
+              >
+                {children}
+              </motion.main>
+            ) : null}
+          </AnimatePresence>
+
+          <Footer />
+        </>
+      ) : null}
     </>
   )
 }
 
-Layout.propTypes = {
-  children: PropTypes.node.isRequired,
-}
+const mapStateToProps = state => ({
+  bodyFontLoaded: state.bodyFontLoaded,
+  currentPage: state.currentPage,
+})
 
-export default Layout
+export default connect(mapStateToProps)(Layout)
