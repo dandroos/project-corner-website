@@ -3,7 +3,7 @@ module.exports = {
   tel_display: "636 323 441",
   tel: 636323441,
   address: [
-    "Calle Alcades Mayores 1",
+    "Calle Alcaldes Mayores 1",
     "Local 6",
     "Majada Marcial",
     "Puerto del Rosario",
